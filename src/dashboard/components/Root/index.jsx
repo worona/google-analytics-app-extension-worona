@@ -1,18 +1,15 @@
+/* eslint-disable react/no-unused-prop-types */
 import React from 'react';
 import * as deps from '../../deps';
-
-const Content = () => (
-  <div>
-    <h1>I am a Worona package</h1>
-    <div>And this is my content.</div>
-  </div>
-);
+import Form from './Form.jsx';
 
 export default () => {
   const RootContainer = deps.elements.RootContainer;
   return (
     <RootContainer mobilePreview>
-      <Content />
+      <h1 className="title">Google Analytics</h1>
+      <hr />
+      <Form />
     </RootContainer>
   );
 };

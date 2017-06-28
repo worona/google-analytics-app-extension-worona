@@ -1,19 +1,21 @@
 {
-  "name": "package-development-worona",
+  "name": "google-analytics-app-extension-worona",
   "version": "1.0.0",
-  "description": "Boilerplate to create Worona packages",
+  "description": "Add Google Analytics to a Worona app",
   "scripts": {
     "start": "node node_modules/worona-packages/dist/start.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/worona/package-development-worona.git"
+    "url": "git+https://github.com/worona/google-analytics-app-extension-worona.git"
   },
   "keywords": [
+    "google",
+    "analytics",
     "worona",
     "package"
   ],
-  "author": "",
+  "author": "david@worona.org",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
@@ -22,6 +24,36 @@
     "eslint-plugin-import": "^1.16.0",
     "eslint-plugin-jsx-a11y": "^2.2.2",
     "eslint-plugin-react": "^6.3.0",
-    "worona-packages": "1.3.8"
+    "vendors-dashboard-worona": "1.4.0",
+    "worona-packages": "1.4.0"
+  },
+  "bugs": {
+    "url": "https://github.com/worona/google-analytics-app-extension-worona/issues"
+  },
+  "homepage": "https://github.com/worona/google-analytics-app-extension-worona#readme",
+  "worona": {
+    "authors": [
+      "david@worona.org"
+    ],
+    "private": false,
+    "dashboard": {
+      "type": "extension",
+      "namespace": "googleAnalytics",
+      "menu": {
+        "app": {
+          "niceName": "Google Analytics",
+          "category": "Extensions",
+          "order": 10
+        }
+      }
+    },
+    "app": {
+      "type": "extension",
+      "namespace": "googleAnalytics",
+      "listed": true,
+      "niceName": "Google Analytics",
+      "description": "Add Google Analytics to a Worona app",
+      "image": ""
+    }
   }
 }
