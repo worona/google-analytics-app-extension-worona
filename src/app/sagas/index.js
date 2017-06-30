@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-import { takeEvery, takeLatest } from 'redux-saga';
-import { select, take, fork, flush, call, cancel } from 'redux-saga/effects';
+import { takeEvery } from 'redux-saga';
+import { select, take, fork, call } from 'redux-saga/effects';
 import request from 'superagent';
 import * as deps from '../deps';
 
@@ -16,16 +16,16 @@ export function* virtualPageView(siteName, siteUrl) {
   } else if (query.tag) {
     yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
     yield call(sendPageView, siteName, siteUrl, 'tags', query.tag);
-  } else if (query.author) { // users
+  } else if (query.author) {
     yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
     yield call(sendPageView, siteName, siteUrl, 'users', query.author);
-  } else if (query.page_id) { // pages
+  } else if (query.page_id) {
     yield take(deps.types.PAGE_SUCCEED);
     yield call(sendPageView, siteName, siteUrl, 'pages', query.page_id);
-  } else if (query.s) { // search
+  } else if (query.s) {
     yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
     yield call(sendPageView, siteName, siteUrl, 'searchs', query.s);
-  } else if (query.attachment_id) { // media
+  } else if (query.attachment_id) {
     yield take(deps.types.POST_SUCCEED);
     yield call(sendPageView, siteName, siteUrl, 'media', query.attachment_id);
   } else {
@@ -35,7 +35,8 @@ export function* virtualPageView(siteName, siteUrl) {
 }
 
 export function* sendPageView(siteName, siteUrl, wpType, id) {
-  let entity, title;
+  let entity,
+    title;
 
   console.log('PAGE VIEW', wpType, id);
 
@@ -45,20 +46,22 @@ export function* sendPageView(siteName, siteUrl, wpType, id) {
 
   // Chooses the correct attribute for pageview's title
   switch (wpType) {
-  case 'posts', 'pages', 'searchs':
-    title = `${entity.title.rendered} - ${siteName}`; break;
-  case 'categories', 'tags', 'users', 'media':
-    title = `${entity.name} - ${siteName}`; break;
-  default:
-    title = `${siteName}`;
+    case ('posts', 'pages', 'searchs'):
+      title = `${entity.title.rendered} - ${siteName}`;
+      break;
+    case ('categories', 'tags', 'users', 'media'):
+      title = `${entity.name} - ${siteName}`;
+      break;
+    default:
+      title = `${siteName}`;
   }
 
-  let entityUrl = entity ? new URL(entity.link) : new URL(siteUrl);
+  const entityUrl = entity ? new URL(entity.link) : new URL(siteUrl);
 
-  let pageview = {
+  const pageview = {
     hitType: 'pageview',
-    title: title,
-    page: entityUrl.pathname
+    title,
+    page: entityUrl.pathname,
   };
 
   ga('clientTracker.send', pageview);
@@ -76,7 +79,7 @@ export default function* googleAnalyticsSagas() {
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
   } else {
-    console.log('Variable "ga" already initialized.')
+    console.log('Variable "ga" already initialized.');
   }
 
   const siteUrl = yield select(deps.selectorCreators.getSetting('generalSite', 'url'));
@@ -84,8 +87,9 @@ export default function* googleAnalyticsSagas() {
   const siteName = body.name;
 
   const firstView = yield fork(function* firstVirtualPageView() {
-
-    const trackingId = yield select(deps.selectorCreators.getSetting('googleAnalytics', 'trackingId'));
+    const trackingId = yield select(
+      deps.selectorCreators.getSetting('googleAnalytics', 'trackingId')
+    );
     ga('create', trackingId, 'auto', 'clientTracker');
     console.log('Client Tracker created.', ga.getAll());
 
