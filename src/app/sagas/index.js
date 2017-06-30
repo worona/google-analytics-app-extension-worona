@@ -1,72 +1,96 @@
 /* eslint-disable no-undef */
-import { takeEvery } from 'redux-saga';
-import { select, take, fork, call } from 'redux-saga/effects';
+import { takeEvery, takeLatest } from 'redux-saga';
+import { select, take, fork, flush, call, cancel } from 'redux-saga/effects';
 import request from 'superagent';
-// import Mixpanel from 'mixpanel';
 import * as deps from '../deps';
 
-export function* virtualPageView(siteUrl, siteName) {
+export function* virtualPageView(siteName, siteUrl) {
   const query = yield select(deps.selectors.getURLQueries);
-  let entity;
+
   if (query.p) {
-    // The Beauties of Gullfoss – Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('posts', query.p));
+    yield take(deps.types.POST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'posts', query.p);
   } else if (query.cat) {
-    // Culture – Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('queries', query.cat));
+    yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'categories', query.cat);
   } else if (query.tag) {
-    // Tag – Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('tags', query.tag));
+    yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'tags', query.tag);
   } else if (query.author) { // users
-    // Alan Martin - Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('users', query.author));
+    yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'users', query.author);
   } else if (query.page_id) { // pages
-    // Page - Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('pages', query.page_id));
+    yield take(deps.types.PAGE_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'pages', query.page_id);
   } else if (query.s) { // search
-    // Search Results for “beauties” – Demo Worona
-    entity = yield select(deps.selectorCreators.getWpTypeById('searchs', query.s));
+    yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'searchs', query.s);
   } else if (query.attachment_id) { // media
-    entity = yield select(deps.selectorCreators.getWpTypeById('media', query.attachment_id));
+    yield take(deps.types.POST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl, 'media', query.attachment_id);
   } else {
-    // Demo Worona - Just another WordPress site
+    yield take(deps.types.NEW_POSTS_LIST_SUCCEED);
+    yield call(sendPageView, siteName, siteUrl);
+  }
+}
+
+export function* sendPageView(siteName, siteUrl, wpType, id) {
+  let entity, title;
+
+  console.log('PAGE VIEW', wpType, id);
+
+  if (typeof wpType === 'string' && typeof id === 'string') {
+    entity = yield select(deps.selectorCreators.getWpTypeById(wpType, id));
   }
 
-  let title = entity ? `${entity.title.rendered} - ${siteName}` : `${siteName}`;
-  let entityUrl = entity ? new URL(entity.url) : new URL(siteUrl);
+  // Chooses the correct attribute for pageview's title
+  switch (wpType) {
+  case 'posts', 'pages', 'searchs':
+    title = `${entity.title.rendered} - ${siteName}`; break;
+  case 'categories', 'tags', 'users', 'media':
+    title = `${entity.name} - ${siteName}`; break;
+  default:
+    title = `${siteName}`;
+  }
 
-  ga('send', {
+  let entityUrl = entity ? new URL(entity.link) : new URL(siteUrl);
+
+  let pageview = {
     hitType: 'pageview',
     title: title,
     page: entityUrl.pathname
-  });
+  };
+
+  ga('clientTracker.send', pageview);
+
+  console.log(pageview);
 }
 
 export default function* googleAnalyticsSagas() {
-  yield take(deps.types.SITE_ID_CHANGED);
+  // yield take(deps.types.SITE_ID_CHANGED);
 
   if (!window.ga) {
+    console.log('Variable "ga" not initialized.');
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  } else {
+    console.log('Variable "ga" already initialized.')
   }
 
+  const siteUrl = yield select(deps.selectorCreators.getSetting('generalSite', 'url'));
+  const { body } = yield call(request, `${siteUrl}/?rest_route=/`);
+  const siteName = body.name;
 
-  yield [
-    fork(function* firstVirtualPageView() {
-      yield take(deps.types.APP_SETTINGS_SUCCEED);
+  const firstView = yield fork(function* firstVirtualPageView() {
 
-      const siteUrl = yield select(deps.selectorCreators.getSetting('generalSite', 'url'));
-      const { body } = yield call(request, `${siteUrl}/?rest_url=/`);
-      const siteName = body.name;
+    const trackingId = yield select(deps.selectorCreators.getSetting('googleAnalytics', 'trackingId'));
+    ga('create', trackingId, 'auto', 'clientTracker');
+    console.log('Client Tracker created.', ga.getAll());
 
-      const trackingId = yield select(deps.selectorCreators.getSetting('googleAnalytics', 'trackingId'));
-      ga('create', trackingId, 'auto', 'clientTracker');
+    yield call(virtualPageView, siteName, siteUrl);
+  });
 
-      yield call(virtualPageView, siteUrl, siteName);
-    }),
-
-    takeEvery(deps.types.ROUTER_DID_CHANGE, virtualPageView),
-  ];
+  yield takeEvery(deps.types.ROUTER_DID_CHANGE, virtualPageView, siteName, siteUrl);
 }
