@@ -4,6 +4,41 @@ import { select, take, fork, call } from 'redux-saga/effects';
 import request from 'superagent';
 import * as deps from '../deps';
 
+export function* sendPageView(siteName, siteUrl, wpType, id) {
+  let entity;
+  let title;
+
+  if (typeof wpType === 'string' && typeof id === 'string') {
+    entity = yield select(deps.selectorCreators.getWpTypeById(wpType, id));
+  }
+
+  // Chooses the correct attribute for pageview's title
+  switch (wpType) {
+    case 'posts':
+    case 'pages':
+    case 'searchs':
+      title = `${entity.title.rendered} - ${siteName}`;
+      break;
+    case 'categories':
+    case 'tags':
+    case 'users':
+    case 'media':
+      title = `${entity.name} - ${siteName}`;
+      break;
+    default:
+      title = `${siteName}`;
+  }
+
+  const entityUrl = entity ? new URL(entity.link) : new URL(siteUrl);
+  const pageview = {
+    hitType: 'pageview',
+    title,
+    page: entityUrl.pathname,
+  };
+
+  ga('clientTracker.send', pageview);
+}
+
 export function* virtualPageView(siteName, siteUrl) {
   const query = yield select(deps.selectors.getURLQueries);
 
@@ -40,41 +75,6 @@ export function* virtualPageView(siteName, siteUrl) {
   }
 }
 
-export function* sendPageView(siteName, siteUrl, wpType, id) {
-  let entity,
-    title;
-
-  if (typeof wpType === 'string' && typeof id === 'string') {
-    entity = yield select(deps.selectorCreators.getWpTypeById(wpType, id));
-  }
-
-  // Chooses the correct attribute for pageview's title
-  switch (wpType) {
-    case 'posts':
-    case 'pages':
-    case 'searchs':
-      title = `${entity.title.rendered} - ${siteName}`;
-      break;
-    case 'categories':
-    case 'tags':
-    case 'users':
-    case 'media':
-      title = `${entity.name} - ${siteName}`;
-      break;
-    default:
-      title = `${siteName}`;
-  }
-
-  const entityUrl = entity ? new URL(entity.link) : new URL(siteUrl);
-  const pageview = {
-    hitType: 'pageview',
-    title,
-    page: entityUrl.pathname,
-  };
-
-  ga('clientTracker.send', pageview);
-}
-
 export default function* googleAnalyticsSagas() {
   if (!window.ga) {
     (function (i, s, o, g, r, a, m) {
@@ -92,15 +92,23 @@ export default function* googleAnalyticsSagas() {
   }
 
   const siteUrl = yield select(deps.selectorCreators.getSetting('generalSite', 'url'));
-  const { body } = yield call(request, `${siteUrl}/?rest_route=/`);
-  const siteName = body.name;
+  const siteName = (yield call(request, `${siteUrl}/?rest_route=/`)).body.name;
 
-  const firstView = yield fork(function* firstVirtualPageView() {
+  yield fork(function* firstVirtualPageView() {
     const trackingId = yield select(
       deps.selectorCreators.getSetting('googleAnalytics', 'trackingId')
     );
     ga('create', trackingId, 'auto', 'clientTracker');
 
+    if (yield select(deps.selectorCreators.getSetting('googleAnalytics', 'useCustomDim'))) {
+      const dimensionId = yield select(
+        deps.selectorCreators.getSetting('googleAnalytics', 'dimensionId')
+      );
+      const dimensionValue = yield select(
+        deps.selectorCreators.getSetting('googleAnalytics', 'dimensionValue')
+      );
+      ga('clientTracker.set', `dimension${dimensionId}`, dimensionValue);
+    }
     yield call(virtualPageView, siteName, siteUrl);
   });
 
