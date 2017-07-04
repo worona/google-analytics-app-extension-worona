@@ -10,6 +10,9 @@ export const elements = {
   get Input() {
     return dep('theme', 'elements', 'Input');
   },
+  get Switch() {
+    return dep('theme', 'elements', 'Switch');
+  },
 };
 
 export const actions = {
