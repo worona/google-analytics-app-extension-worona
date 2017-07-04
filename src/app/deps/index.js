@@ -7,11 +7,11 @@ export const types = {
   get POST_SUCCEED() { return dep('connection', 'types', 'POST_SUCCEED'); },
   get PAGE_SUCCEED() { return dep('connection', 'types', 'PAGE_SUCCEED'); },
   get NEW_POSTS_LIST_SUCCEED() { return dep('connection', 'types', 'NEW_POSTS_LIST_SUCCEED'); },
-}
+};
 
 export const selectors = {
   get getURLQueries() { return dep('router', 'selectors', 'getURLQueries'); },
-}
+};
 
 export const selectorCreators = {
   get getSetting() {
