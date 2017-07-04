@@ -2,8 +2,8 @@ export const messages = {
   required: 'Required',
   invalidTrackingId:
     'Invalid Tracking ID. It should be something like UA-XXXX-YY, being XXXX a number of 4-9 digits and YY a number of 1-4 digits.',
-  invalidDimensionId: 'Invalid dimension ID. It should be a number of 1-4 digits.',
-  invalidDimensionValue: 'Dimension value cannot be empty.',
+  invalidDimensionId: 'Invalid index. It should be a number of 1-4 digits.',
+  invalidDimensionValue: 'This field cannot be empty.',
 };
 
 const regexps = {

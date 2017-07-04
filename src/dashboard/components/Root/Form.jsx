@@ -37,22 +37,28 @@ const Form = ({ handleSubmit, pristine, siteId, waiting, invalid, anyTouched, us
       <div className="column is-12-mobile is-6-tablet is-4-desktop">
         <Field
           name="dimensionId"
-          label="Dimension ID's number"
+          label="Dimension's index"
           component={deps.elements.Input}
           type="text"
           size="medium"
           disabled={!useCustomDim}
         />
+        <span className="help">
+          The index of your custom dimension assigned by Google Analytics.
+        </span>
       </div>
       <div className="column is-12-mobile is-6-tablet is-8-desktop">
         <Field
           name="dimensionValue"
-          label="Dimension Value"
+          label="Dimension's value"
           component={deps.elements.Input}
           type="text"
           size="medium"
           disabled={!useCustomDim}
         />
+        <span className="help">
+          Value to be assigned to your custom dimension that will be sent into your pageviews.
+        </span>
       </div>
     </div>
     <br />
@@ -71,7 +77,11 @@ const Form = ({ handleSubmit, pristine, siteId, waiting, invalid, anyTouched, us
       <div className="message-header">
         <p>Where do I find my Google Analytics Tracking ID?</p>
       </div>
-      <div className="message-body">Here a brief explanation of how to do that.</div>
+      <div className="message-body">
+        To start collecting data from your mobile app you will need to connect your Google Analytics
+        account to Worona via your Analytics Tracking ID. <br />
+        If you don&#39;t know where to find this number, please follow our documentation.
+      </div>
     </article>
   </form>;
 Form.propTypes = {
