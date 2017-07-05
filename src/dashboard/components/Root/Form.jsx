@@ -75,12 +75,13 @@ const Form = ({ handleSubmit, pristine, siteId, waiting, invalid, anyTouched, us
     <hr />
     <article className="message is-primary">
       <div className="message-header">
-        <p>Where do I find my Google Analytics Tracking ID?</p>
+        <p>Not familiar with Google Analytics?</p>
       </div>
       <div className="message-body">
-        To start collecting data from your mobile app you will need to connect your Google Analytics
-        account to Worona via your Analytics Tracking ID. <br />
-        If you don&#39;t know where to find this number, please follow our documentation.
+        Follow our{' '}
+        <a href="https://docs.worona.org/dashboard/extensions/analytics.html">documentation</a> to
+        learn where to find your Analytics tracking ID and how to collect data with custom
+        dimensions.
       </div>
     </article>
   </form>;
