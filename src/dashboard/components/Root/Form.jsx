@@ -79,8 +79,10 @@ const Form = ({ handleSubmit, pristine, siteId, waiting, invalid, anyTouched, us
       </div>
       <div className="message-body">
         Follow our{' '}
-        <a href="https://docs.worona.org/dashboard/extensions/analytics.html">documentation</a> to
-        learn where to find your Analytics tracking ID and how to collect data with custom
+        <a href="https://docs.worona.org/dashboard/extensions/google-analytics.html">
+          documentation
+        </a>{' '}
+        to learn where to find your Analytics tracking ID and how to collect data with custom
         dimensions.
       </div>
     </article>
