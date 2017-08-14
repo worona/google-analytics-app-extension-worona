@@ -92,7 +92,9 @@ export default function* googleAnalyticsSagas() {
   }
 
   const siteUrl = yield select(deps.selectorCreators.getSetting('generalSite', 'url'));
-  const siteName = (yield call(request, `${siteUrl}/?rest_route=/`)).body.name;
+  const shouldUseCors = siteUrl.startsWith('http://') && window.location.protocol === 'https:';
+  const prefix = shouldUseCors ? 'https://cors.worona.io/' : '';
+  const siteName = (yield call(request, `${prefix}${siteUrl}/?rest_route=/`)).body.name;
 
   yield fork(function* firstVirtualPageView() {
     const trackingId = yield select(
